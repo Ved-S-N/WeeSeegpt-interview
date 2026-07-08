@@ -37,6 +37,19 @@ Given the time constraints, several choices were made to optimize for correctnes
   - *Fuzzy verbatim matching* using Levenshtein distance (e.g., allowing 95% similarity) to tolerate minor character differences.
   - *Confidence scoring* for generated answers.
 
+- **Observed tension: injection-caution vs. recall on unusual content.** During manual 
+  testing, adding a new document with an atypical filename/tone (casual phrasing, 
+  unrelated to the existing formal policy-doc style) caused the model to refuse to 
+  answer a question the document actually supported, even though the fact was 
+  present in context. Renaming the file to match the existing convention and 
+  rewriting the content in the same direct style resolved it. This suggests the 
+  same instructional caution that makes the system resist injected/malicious 
+  document content can also cause it to under-trust legitimate content that 
+  doesn't structurally resemble the rest of the corpus. With more time, I'd want 
+  to test this boundary deliberately. For example, a battery of legitimately-worded but 
+  atypically-formatted documents would be a good test, rather than have it surface informally during 
+  a live demo.
+
 ## Section 5 — Evaluation Results
 
 The evaluation results of running `eval.py` on the questions set are as follows:
