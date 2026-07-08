@@ -14,11 +14,7 @@ A production-ready FastAPI service designed to act as a grounded answer engine f
    ```env
    OPENAI_API_KEY=your_openai_api_key_here
    ```
-4. **Place document files**:
-   Ensure the 10 markdown document files (`*.md`) are placed in the `docs/` folder.
-5. **Place evaluation questions**:
-   Ensure `questions.json` is placed inside the `eval/` folder.
-6. **Run the application**:
+4. **Run the application**:
    Start the FastAPI server (which also hosts the frontend UI at the root `/`):
    ```bash
    uvicorn main:app --reload
