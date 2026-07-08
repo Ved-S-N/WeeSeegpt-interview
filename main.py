@@ -102,6 +102,7 @@ You must follow these rules without exception:
    - Each citation must contain:
      - "doc": the exact filename of the source document (e.g., "02_pricing_and_plans.md").
      - "quote": a short verbatim excerpt copied exactly from that document that directly supports your answer. Do not paraphrase or edit the quote. It must match the document exactly.
+     - Each citation's 'quote' field must be a single, exact, contiguous excerpt copied character-for-character from the document. Do NOT combine multiple sentences, bullet points, or non-adjacent text into one quote using '...' or any other joiner. If a claim requires support from two separate excerpts in the same or different documents, return them as two separate citation objects in the citations array, each independently verifiable.
 
 4. OUTPUT FORMAT:
    - Return ONLY a valid JSON object conforming to the response schema.
@@ -186,21 +187,24 @@ async def ask(request: AskRequest):
 
     # 3. Citation Verification
     if result.answered:
-        valid_citations = []
-        for citation in result.citations:
-            if verify_citation(citation.doc, citation.quote):
-                valid_citations.append(citation)
-            else:
-                logger.warning(f"Removing invalid citation for document: {citation.doc}")
-
-        # Update citations list with only the verified ones
-        result.citations = valid_citations
-
-        # If answered was true but no valid citations remain, force answered=false and replace answer
-        if len(valid_citations) == 0:
-            logger.warning("Zero valid citations remain after verification. Forcing answered=false.")
+        any_failed = False
+        if not result.citations:
+            logger.warning("No citations returned for an answered response. Downgrading.")
+            any_failed = True
+        else:
+            for citation in result.citations:
+                if not verify_citation(citation.doc, citation.quote):
+                    logger.warning(
+                        f"Citation verification failed: Document '{citation.doc}' has invalid quote {repr(citation.quote)}. "
+                        "The entire response will be downgraded as a result."
+                    )
+                    any_failed = True
+                    break
+        
+        if any_failed:
             result.answered = False
-            result.answer = "I don't have verified information on this in the provided documents."
+            result.answer = "This information is not fully available in the provided documents."
+            result.citations = []
             
     return result
 
